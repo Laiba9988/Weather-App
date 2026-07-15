@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pookie's Weather Forecast 🌸</title>
+  <style>
+    /* Google Fonts for a soft, rounded, and cute look */
+    @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&display=swap');
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Quicksand', sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(135deg, #ffe5ec, #ffc2d1);
+      padding: 20px;
+    }
+
+    /* Pookie Weather App Container */
+    .weather-card {
+      background-color: #ffffff;
+      width: 100%;
+      max-width: 380px;
+      border-radius: 30px;
+      padding: 30px;
+      box-shadow: 0 20px 40px rgba(255, 154, 180, 0.3);
+      border: 6px solid #ffb3c6;
+      text-align: center;
+      position: relative;
+    }
+
+    /* Decorative Bow Ribbon on top */
+    .weather-card::before {
+      content: "🎀";
+      font-size: 2.2rem;
+      position: absolute;
+      top: -26px;
+      left: 50%;
+      transform: translateX(-50%);
+      filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.15));
+    }
+
+    h2 {
+      color: #ff4d6d;
+      font-size: 1.6rem;
+      margin-bottom: 20px;
+      font-weight: 700;
+    }
+
+    /* Search Section Wrapper */
+    .search-box {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 25px;
+    }
+
+    input {
+      flex: 1;
+      padding: 12px 18px;
+      border: 3px solid #ffccd5;
+      border-radius: 20px;
+      font-size: 1rem;
+      color: #ff4d6d;
+      background-color: #fff0f3;
+      outline: none;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    input:focus {
+      border-color: #ff758f;
+      background-color: #ffffff;
+      box-shadow: 0 0 10px rgba(255, 117, 143, 0.2);
+    }
+
+    input::placeholder {
+      color: #ffb3c6;
+    }
+
+    /* Search Button Style */
+    button {
+      background-color: #ff758f;
+      border: none;
+      border-radius: 20px;
+      color: white;
+      padding: 0 18px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      box-shadow: 0 4px 0 #c9184a;
+    }
+
+    button:active {
+      transform: translateY(4px);
+      box-shadow: 0 0px 0 transparent;
+    }
+
+    /* Loading and Error states styling */
+    .status-msg {
+      font-size: 1.1rem;
+      color: #ff758f;
+      font-weight: 700;
+      margin: 30px 0;
+      display: none;
+    }
+
+    /* Main Weather Content Display */
+    .weather-info {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      animation: fadeIn 0.5s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .city-name {
+      font-size: 1.5rem;
+      color: #ff4d6d;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+
+    .weather-icon {
+      font-size: 5rem;
+      margin: 15px 0;
+      filter: drop-shadow(0 4px 6px rgba(255, 154, 180, 0.2));
+    }
+
+    .temp-value {
+      font-size: 3.5rem;
+      font-weight: 700;
+      color: #ff4d6d;
+      line-height: 1;
+    }
+
+    .temp-unit {
+      font-size: 1.8rem;
+      vertical-align: top;
+      color: #ff758f;
+    }
+
+    .condition {
+      font-size: 1.2rem;
+      color: #ff758f;
+      text-transform: capitalize;
+      font-weight: 700;
+      margin-top: 5px;
+      background-color: #fff0f3;
+      padding: 6px 16px;
+      border-radius: 15px;
+      border: 1px dashed #ffccd5;
+    }
+
+    /* Sub-details (humidity, wind) */
+    .weather-details {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      width: 100%;
+      margin-top: 25px;
+      border-top: 2px dashed #ffe5ec;
+      padding-top: 20px;
+    }
+
+    .detail-card {
+      background-color: #fff0f3;
+      padding: 12px;
+      border-radius: 18px;
+      border: 2px solid #ffccd5;
+    }
+
+    .detail-label {
+      font-size: 0.85rem;
+      color: #ff8fa3;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .detail-value {
+      font-size: 1.1rem;
+      color: #ff4d6d;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="weather-card">
+    <h2>Pookie's Weather 🌸</h2>
+    
+    <div class="search-box">
+      <input type="text" id="city-input" placeholder="Search a city... ✨" onkeydown="handleKeyPress(event)">
+      <button onclick="getWeather()">🔍</button>
+    </div>
+
+    <!-- Loading / Error Display -->
+    <div id="status" class="status-msg">Fetching data... 🧸</div>
+
+    <!-- Active Weather Details -->
+    <div id="weather-info" class="weather-info">
+      <div class="city-name" id="city">Karachi, PK</div>
+      <div class="weather-icon" id="icon">☀️</div>
+      <div class="temp-value"><span id="temp">32</span><span class="temp-unit">°C</span></div>
+      <div class="condition" id="condition">Sunny & Cozy</div>
+
+      <div class="weather-details">
+        <div class="detail-card">
+          <div class="detail-label">Humidity 💦</div>
+          <div class="detail-value" id="humidity">65%</div>
+        </div>
+        <div class="detail-card">
+          <div class="detail-label">Wind Speed 🍃</div>
+          <div class="detail-value" id="wind">12 km/h</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // OpenWeatherMap free api configuration
+    // (Aap is demo key ko production ke liye apni key se change kar saktay hain)
+    const apiKey = "8a32a68cbb72c1c1f71f66d4ff104925"; 
+
+    // Weather condition according icon matching logic
+    const iconMapping = {
+      "Clear": "☀️",
+      "Clouds": "☁️",
+      "Rain": "🌧️",
+      "Drizzle": "🌦️",
+      "Thunderstorm": "⛈️",
+      "Snow": "❄️",
+      "Mist": "🌫️",
+      "Smoke": "🌫️",
+      "Haze": "🌫️",
+      "Dust": "🌫️",
+      "Fog": "🌫️"
+    };
+
+    function handleKeyPress(event) {
+      if (event.key === "Enter") {
+        getWeather();
+      }
+    }
+
+    async function getWeather() {
+      const city = document.getElementById('city-input').value.trim();
+      if (!city) return;
+
+      const statusEl = document.getElementById('status');
+      const weatherInfoEl = document.getElementById('weather-info');
+
+      // 1. Show Loading State
+      statusEl.innerText = "Finding details for you... 🧸";
+      statusEl.style.display = "block";
+      weatherInfoEl.style.display = "none";
+
+      const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric`;
+
+      try {
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+          throw new Error("City not found 🥺");
+        }
+
+        const data = await response.json();
+        
+        // 2. Map and Display fetched data
+        document.getElementById('city').innerText = `${data.name}, ${data.sys.country}`;
+        document.getElementById('temp').innerText = Math.round(data.main.temp);
+        
+        const mainCondition = data.weather[0].main;
+        document.getElementById('condition').innerText = data.weather[0].description;
+        document.getElementById('icon').innerText = iconMapping[mainCondition] || "✨";
+        
+        document.getElementById('humidity').innerText = `${data.main.humidity}%`;
+        document.getElementById('wind').innerText = `${Math.round(data.wind.speed * 3.6)} km/h`; // Converted m/s to km/h
+
+        // 3. Hide loading and show main layout
+        statusEl.style.display = "none";
+        weatherInfoEl.style.display = "flex";
+
+      } catch (error) {
+        // 4. Handle Error State
+        statusEl.innerText = error.message === "City not found 🥺" ? "Oops! City not found... 🥺" : "Network error, try again! 💕";
+        statusEl.style.display = "block";
+        weatherInfoEl.style.display = "none";
+      }
+    }
+  </script>
+</body>
+</html>
